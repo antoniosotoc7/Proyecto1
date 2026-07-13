@@ -46,3 +46,17 @@ Netlify Dev utiliza un almacén local separado del de producción.
 
 Es una clasificación casual sin cuentas ni contraseña. Un usuario puede abrir otra partida o usar otro nombre.
 Para competiciones con premios conviene añadir autenticación y una base de datos con controles más estrictos.
+
+
+## Un intento por usuario
+
+Cada nombre de usuario solo puede iniciar una partida por fecha de reto.
+La reserva se realiza mediante una escritura condicional atómica (`onlyIfNew`),
+por lo que tampoco se permiten dos inicios simultáneos con el mismo nombre.
+
+Los nombres se comparan sin distinguir mayúsculas y minúsculas. Por ejemplo,
+`Antonio` y `antonio` cuentan como el mismo usuario.
+
+Esta restricción no equivale a una cuenta autenticada: una persona todavía puede
+usar un nombre diferente. Para impedirlo de forma fiable hacen falta cuentas con
+inicio de sesión.

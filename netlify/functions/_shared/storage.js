@@ -8,7 +8,6 @@ async function getBlobStore(event) {
   return getStore(STORE_NAME);
 }
 
-
 function cleanUsername(value) {
   if (typeof value !== "string") {
     throw new Error("Escribe un nombre de usuario.");
@@ -35,18 +34,60 @@ function resultKey(date, id) {
   return `results/${date}/${id}`;
 }
 
+function usernameClaimKey(date, username) {
+  const normalizedUsername = username
+    .normalize("NFKC")
+    .toLocaleLowerCase("es-ES");
+
+  const usernameHash = crypto
+    .createHash("sha256")
+    .update(normalizedUsername)
+    .digest("hex");
+
+  return `username-claims/${date}/${usernameHash}`;
+}
+
 async function createSession(event, date, username) {
   const store = await getBlobStore(event);
+  const cleanedUsername = cleanUsername(username);
   const sessionId = crypto.randomUUID();
+
+  // Reserva atómicamente el nombre para este reto.
+  // onlyIfNew impide que el mismo nombre pueda iniciar otra partida hoy.
+  const claim = await store.setJSON(
+    usernameClaimKey(date, cleanedUsername),
+    {
+      username: cleanedUsername,
+      sessionId,
+      claimedAt: Date.now()
+    },
+    { onlyIfNew: true }
+  );
+
+  if (!claim.modified) {
+    throw new Error(
+      "Ese nombre ya ha participado en el reto de hoy. Cada usuario dispone de un solo intento."
+    );
+  }
+
   const session = {
     sessionId,
     date,
-    username: cleanUsername(username),
+    username: cleanedUsername,
     startedAt: Date.now(),
     status: "playing"
   };
 
-  await store.setJSON(sessionKey(sessionId), session, { onlyIfNew: true });
+  const created = await store.setJSON(
+    sessionKey(sessionId),
+    session,
+    { onlyIfNew: true }
+  );
+
+  if (!created.modified) {
+    throw new Error("No se pudo crear la partida. Prueba con otro nombre.");
+  }
+
   return session;
 }
 
