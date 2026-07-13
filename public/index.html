@@ -4,612 +4,154 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="Objetivo X: reto diario de cálculo mental con clasificación por tiempo." />
   <title>Objetivo X</title>
-
   <style>
     * { box-sizing: border-box; }
-
     :root {
-      --panel: rgba(30, 41, 59, 0.96);
-      --panel-light: #334155;
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #f8fafc;
-      --muted: #cbd5e1;
-      --yellow: #facc15;
-      --green: #22c55e;
-      --red: #dc2626;
+      --panel: rgba(30, 41, 59, 0.96); --panel-light: #334155;
+      --border: rgba(255,255,255,.1); --text: #f8fafc; --muted: #cbd5e1;
+      --yellow: #facc15; --green: #22c55e; --red: #dc2626; --blue: #3b82f6;
     }
-
     body {
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: Inter, Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top, #1e3a8a 0%, transparent 35%),
-        linear-gradient(160deg, #020617, #0f172a);
+      min-height: 100vh; margin: 0; padding: 20px; display: flex;
+      justify-content: center; align-items: flex-start; font-family: Inter, Arial, sans-serif;
+      color: var(--text); background: radial-gradient(circle at top,#1e3a8a 0%,transparent 35%),linear-gradient(160deg,#020617,#0f172a);
     }
-
-    button { font: inherit; }
-
-    .game {
-      width: min(100%, 620px);
-      padding: 28px;
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      background: var(--panel);
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 24px;
-    }
-
-    .brand {
-      margin: 0;
-      font-size: clamp(2rem, 8vw, 3rem);
-      line-height: 1;
-      letter-spacing: -0.06em;
-    }
-
-    .brand span, .target { color: var(--yellow); }
-
-    .subtitle {
-      margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .badge {
-      flex-shrink: 0;
-      height: fit-content;
-      padding: 8px 12px;
-      border: 1px solid rgba(250, 204, 21, 0.35);
-      border-radius: 999px;
-      color: var(--yellow);
-      background: rgba(250, 204, 21, 0.1);
-      font-size: 0.82rem;
-      font-weight: 800;
-      text-align: center;
-    }
-
-    .date-label {
-      display: block;
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 0.7rem;
-    }
-
-
-    .timer-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 14px 16px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(59, 130, 246, 0.28);
-      border-radius: 18px;
-      background: rgba(59, 130, 246, 0.08);
-    }
-
-    .timer-label {
-      color: var(--muted);
-      font-size: 0.82rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .timer {
-      min-width: 92px;
-      color: #bfdbfe;
-      font-family: Consolas, monospace;
-      font-size: 1.55rem;
-      font-weight: 900;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .timer.finished {
-      color: var(--yellow);
-    }
-
-    .target-card {
-      padding: 20px;
-      margin-bottom: 22px;
-      border: 1px solid rgba(250, 204, 21, 0.25);
-      border-radius: 22px;
-      text-align: center;
-      background: rgba(250, 204, 21, 0.08);
-    }
-
-    .target-label, .section-label {
-      color: var(--muted);
-      font-size: 0.82rem;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .target {
-      margin-top: 6px;
-      font-size: clamp(3.2rem, 15vw, 5.4rem);
-      font-weight: 900;
-      line-height: 1;
-    }
-
-    .section-label { margin: 0 0 10px; }
-
-    .numbers {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-
-    .number-button, .control-button {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      color: white;
-      background: var(--panel-light);
-      font-weight: 900;
-      cursor: pointer;
-    }
-
-    .number-button {
-      min-height: 64px;
-      font-size: 1.35rem;
-    }
-
-    .number-button:disabled {
-      opacity: 0.28;
-      cursor: not-allowed;
-    }
-
-    .expression-panel {
-      padding: 16px;
-      margin-bottom: 14px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: rgba(15, 23, 42, 0.75);
-    }
-
-    .expression-display {
-      min-height: 62px;
-      display: flex;
-      align-items: center;
-      overflow-x: auto;
-      font-family: Consolas, monospace;
-      font-size: clamp(1.15rem, 5vw, 1.55rem);
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .placeholder { color: #64748b; font-family: Inter, Arial, sans-serif; }
-
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 9px;
-      margin-bottom: 10px;
-    }
-
-    .control-button {
-      min-height: 52px;
-      font-size: 1.2rem;
-    }
-
-    .control-button.utility { font-size: 0.92rem; }
-
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1.6fr;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .action-button, .solution-button {
-      min-height: 54px;
-      border: 0;
-      border-radius: 16px;
-      color: white;
-      font-weight: 900;
-      cursor: pointer;
-    }
-
-    .reset-button { background: #475569; }
-    .check-button { background: var(--green); }
-
-    .solution-button {
-      width: 100%;
-      margin-top: 10px;
-      border: 1px solid rgba(59, 130, 246, 0.35);
-      color: #bfdbfe;
-      background: rgba(59, 130, 246, 0.12);
-    }
-
-    .message {
-      min-height: 28px;
-      margin-top: 18px;
-      text-align: center;
-      font-weight: 800;
-    }
-
-    .solution {
-      display: none;
-      padding: 18px;
-      margin-top: 16px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      text-align: center;
-      background: rgba(15, 23, 42, 0.72);
-    }
-
-    .solution-expression {
-      display: block;
-      margin: 10px 0 16px;
-      color: var(--yellow);
-      font-family: Consolas, monospace;
-      word-break: break-word;
-    }
-
-    .youtube-link {
-      display: inline-flex;
-      min-height: 46px;
-      padding: 0 18px;
-      justify-content: center;
-      align-items: center;
-      border-radius: 12px;
-      color: white;
-      background: var(--red);
-      font-weight: 900;
-      text-decoration: none;
-    }
-
-    .rules {
-      margin: 20px 0 0;
-      color: #94a3b8;
-      font-size: 0.86rem;
-      line-height: 1.5;
-      text-align: center;
-    }
-
-    .loading, .error-state {
-      padding: 40px 10px;
-      text-align: center;
-      color: var(--muted);
-    }
-
-    @media (max-width: 560px) {
-      body { padding: 12px; align-items: flex-start; }
-      .game { padding: 20px; border-radius: 22px; }
-      .header { display: block; }
-      .badge { display: inline-block; margin-top: 14px; }
-      .numbers, .controls { grid-template-columns: repeat(3, 1fr); }
+    button,input { font: inherit; }
+    .game { width:min(100%,680px); padding:28px; border:1px solid var(--border); border-radius:28px; background:var(--panel); box-shadow:0 24px 70px rgba(0,0,0,.45); }
+    .header { display:flex; justify-content:space-between; gap:18px; margin-bottom:24px; }
+    .brand { margin:0; font-size:clamp(2rem,8vw,3rem); line-height:1; letter-spacing:-.06em; }
+    .brand span,.target { color:var(--yellow); }
+    .subtitle { margin:10px 0 0; color:var(--muted); line-height:1.5; }
+    .badge { flex-shrink:0; height:fit-content; padding:8px 12px; border:1px solid rgba(250,204,21,.35); border-radius:999px; color:var(--yellow); background:rgba(250,204,21,.1); font-size:.82rem; font-weight:800; text-align:center; }
+    .date-label { display:block; margin-top:3px; color:var(--muted); font-size:.7rem; }
+    .username-card,.leaderboard,.timer-card,.target-card,.expression-panel,.solution { border:1px solid var(--border); border-radius:18px; background:rgba(15,23,42,.72); }
+    .username-card { padding:18px; margin-bottom:18px; }
+    .username-row { display:flex; gap:10px; margin-top:10px; }
+    .username-input { width:100%; min-height:48px; padding:0 14px; border:1px solid var(--border); border-radius:12px; color:white; background:#0f172a; }
+    .primary-button { min-height:48px; padding:0 18px; border:0; border-radius:12px; color:white; background:var(--blue); font-weight:900; cursor:pointer; white-space:nowrap; }
+    .player-line { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; color:var(--muted); }
+    .link-button { border:0; padding:0; color:#bfdbfe; background:transparent; cursor:pointer; text-decoration:underline; }
+    .timer-card { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; margin-bottom:16px; border-color:rgba(59,130,246,.28); background:rgba(59,130,246,.08); }
+    .timer-label,.target-label,.section-label { color:var(--muted); font-size:.82rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+    .timer { min-width:92px; color:#bfdbfe; font-family:Consolas,monospace; font-size:1.55rem; font-weight:900; text-align:right; }
+    .timer.finished { color:var(--yellow); }
+    .target-card { padding:20px; margin-bottom:22px; border-color:rgba(250,204,21,.25); text-align:center; background:rgba(250,204,21,.08); }
+    .target { margin-top:6px; font-size:clamp(3.2rem,15vw,5.4rem); font-weight:900; line-height:1; }
+    .section-label { margin:0 0 10px; }
+    .numbers,.controls { display:grid; grid-template-columns:repeat(6,1fr); gap:9px; }
+    .numbers { margin-bottom:22px; }
+    .number-button,.control-button { border:1px solid var(--border); border-radius:16px; color:white; background:var(--panel-light); font-weight:900; cursor:pointer; }
+    .number-button { min-height:64px; font-size:1.35rem; }
+    .number-button:disabled,button:disabled { opacity:.35; cursor:not-allowed; }
+    .expression-panel { padding:16px; margin-bottom:14px; }
+    .expression-display { min-height:62px; display:flex; align-items:center; overflow-x:auto; font-family:Consolas,monospace; font-size:clamp(1.15rem,5vw,1.55rem); font-weight:800; white-space:nowrap; }
+    .placeholder { color:#64748b; font-family:Inter,Arial,sans-serif; }
+    .controls { margin-bottom:10px; }
+    .control-button { min-height:52px; font-size:1.2rem; }
+    .control-button.utility { font-size:.92rem; }
+    .actions { display:grid; grid-template-columns:1fr 1.6fr; gap:10px; margin-top:16px; }
+    .action-button,.solution-button { min-height:54px; border:0; border-radius:16px; color:white; font-weight:900; cursor:pointer; }
+    .reset-button { background:#475569; } .check-button { background:var(--green); }
+    .solution-button { width:100%; margin-top:10px; border:1px solid rgba(59,130,246,.35); color:#bfdbfe; background:rgba(59,130,246,.12); }
+    .message { min-height:28px; margin-top:18px; text-align:center; font-weight:800; line-height:1.5; }
+    .solution { display:none; padding:18px; margin-top:16px; text-align:center; }
+    .solution-expression { display:block; margin:10px 0 16px; color:var(--yellow); font-family:Consolas,monospace; word-break:break-word; }
+    .youtube-link { display:inline-flex; min-height:46px; padding:0 18px; justify-content:center; align-items:center; border-radius:12px; color:white; background:var(--red); font-weight:900; text-decoration:none; }
+    .leaderboard { padding:18px; margin-top:20px; }
+    .leaderboard-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .leaderboard h2 { margin:0; font-size:1.2rem; }
+    .ranking-list { margin:14px 0 0; padding:0; list-style:none; }
+    .ranking-row { display:grid; grid-template-columns:44px 1fr auto; gap:10px; padding:10px 6px; border-top:1px solid var(--border); align-items:center; }
+    .ranking-row.me { background:rgba(250,204,21,.08); }
+    .rank { color:var(--yellow); font-weight:900; } .rank-time { font-family:Consolas,monospace; }
+    .empty { color:var(--muted); text-align:center; padding:16px 0 4px; }
+    .rules { margin:20px 0 0; color:#94a3b8; font-size:.86rem; line-height:1.5; text-align:center; }
+    .loading,.error-state { padding:40px 10px; text-align:center; color:var(--muted); }
+    [hidden] { display:none !important; }
+    @media(max-width:560px) {
+      body{padding:12px}.game{padding:20px;border-radius:22px}.header{display:block}.badge{display:inline-block;margin-top:14px}
+      .numbers,.controls{grid-template-columns:repeat(3,1fr)}.username-row{display:grid}.actions{grid-template-columns:1fr}
     }
   </style>
 </head>
-
 <body>
   <main class="game">
     <header class="header">
-      <div>
-        <h1 class="brand">Objetivo <span>X</span></h1>
-        <p class="subtitle">
-          Usa los seis números y alcanza exactamente el objetivo.
-        </p>
-      </div>
-
-      <div class="badge">
-        Reto diario
-        <span class="date-label" id="dateLabel"></span>
-      </div>
+      <div><h1 class="brand">Objetivo <span>X</span></h1><p class="subtitle">Usa los seis números y alcanza exactamente el objetivo.</p></div>
+      <div class="badge">Reto diario<span class="date-label" id="dateLabel"></span></div>
     </header>
 
     <div id="loading" class="loading">Cargando el reto de hoy…</div>
 
+    <section id="usernameCard" class="username-card" hidden>
+      <div class="section-label">Nombre de jugador</div>
+      <div class="username-row">
+        <input id="usernameInput" class="username-input" maxlength="20" autocomplete="nickname" placeholder="Escribe tu nombre" />
+        <button id="startButton" class="primary-button">Empezar reto</button>
+      </div>
+      <div id="usernameError" class="message"></div>
+    </section>
+
     <div id="gameContent" hidden>
-
-      <section class="timer-card" aria-live="polite">
-        <div class="timer-label">Tiempo</div>
-        <div class="timer" id="timer">00:00</div>
-      </section>
-
-      <section class="target-card">
-        <div class="target-label">Número objetivo</div>
-        <div class="target" id="target"></div>
-      </section>
-
-      <p class="section-label">Elige los números</p>
-      <section class="numbers" id="numbers"></section>
-
-      <p class="section-label">Tu operación</p>
-      <section class="expression-panel">
-        <div class="expression-display" id="expressionDisplay"></div>
-      </section>
-
+      <div class="player-line"><span>Juegas como <strong id="playerName"></strong></span><button id="changeNameButton" class="link-button">Cambiar nombre</button></div>
+      <section class="timer-card"><div class="timer-label">Tiempo</div><div class="timer" id="timer">00:00</div></section>
+      <section class="target-card"><div class="target-label">Número objetivo</div><div class="target" id="target"></div></section>
+      <p class="section-label">Elige los números</p><section class="numbers" id="numbers"></section>
+      <p class="section-label">Tu operación</p><section class="expression-panel"><div class="expression-display" id="expressionDisplay"></div></section>
       <section class="controls">
-        <button class="control-button" data-token="+">+</button>
-        <button class="control-button" data-token="-">−</button>
-        <button class="control-button" data-token="*">×</button>
-        <button class="control-button" data-token="/">÷</button>
-        <button class="control-button" data-token="(">(</button>
-        <button class="control-button" data-token=")">)</button>
+        <button class="control-button" data-token="+">+</button><button class="control-button" data-token="-">−</button>
+        <button class="control-button" data-token="*">×</button><button class="control-button" data-token="/">÷</button>
+        <button class="control-button" data-token="(">(</button><button class="control-button" data-token=")">)</button>
       </section>
-
-      <section class="controls">
-        <button class="control-button utility" id="undoButton">↶ Deshacer</button>
-        <button class="control-button utility" id="clearButton">Borrar todo</button>
-      </section>
-
-      <section class="actions">
-        <button class="action-button reset-button" id="resetButton">Reiniciar</button>
-        <button class="action-button check-button" id="checkButton">Comprobar</button>
-      </section>
-
-      <button class="solution-button" id="giveUpButton">
-        Me rindo y quiero ver la solución
-      </button>
-
+      <section class="controls"><button class="control-button utility" id="undoButton">↶ Deshacer</button><button class="control-button utility" id="clearButton">Borrar todo</button></section>
+      <section class="actions"><button class="action-button reset-button" id="resetButton">Reiniciar</button><button class="action-button check-button" id="checkButton">Comprobar</button></section>
+      <button class="solution-button" id="giveUpButton">Me rindo y quiero ver la solución</button>
       <div class="message" id="message"></div>
-
-      <section class="solution" id="solution">
-        <div>Una solución posible es:</div>
-        <strong class="solution-expression" id="solutionText"></strong>
-        <a class="youtube-link" id="youtubeLink" target="_blank" rel="noopener noreferrer">
-          Ver explicación en YouTube
-        </a>
+      <section class="solution" id="solution"><div>Una solución posible es:</div><strong class="solution-expression" id="solutionText"></strong><a class="youtube-link" id="youtubeLink" target="_blank" rel="noopener noreferrer">Ver explicación en YouTube</a></section>
+      <section class="leaderboard">
+        <div class="leaderboard-head"><h2>Clasificación de hoy</h2><button id="refreshLeaderboard" class="link-button">Actualizar</button></div>
+        <ol id="rankingList" class="ranking-list"></ol>
+        <div id="rankingEmpty" class="empty">Todavía no hay resultados.</div>
       </section>
-
-      <p class="rules">
-        Usa cada número exactamente una vez. Se permiten suma, resta,
-        multiplicación, división y paréntesis. El temporizador no se reinicia al borrar o reiniciar.
-      </p>
+      <p class="rules">Usa cada número exactamente una vez. Los tiempos correctos se ordenan de menor a mayor. Quienes se rinden aparecen al final.</p>
     </div>
   </main>
 
   <script>
-    let puzzle = null;
-    let tokens = [];
-    let usedNumberIndexes = new Set();
-    let timerInterval = null;
-    let timerStartedAt = null;
-    let elapsedMilliseconds = 0;
-    let timerStopped = false;
+    let puzzle=null,tokens=[],usedNumberIndexes=new Set(),timerInterval=null,timerStartedAt=null,timerStopped=false,sessionId=null,username="",gameFinished=false;
+    const $=(id)=>document.getElementById(id);
+    const loading=$("loading"),usernameCard=$("usernameCard"),gameContent=$("gameContent"),dateLabel=$("dateLabel"),targetElement=$("target"),numbersElement=$("numbers"),expressionDisplay=$("expressionDisplay"),messageElement=$("message"),solutionElement=$("solution"),solutionText=$("solutionText"),youtubeLink=$("youtubeLink"),timerElement=$("timer"),rankingList=$("rankingList"),rankingEmpty=$("rankingEmpty");
 
-    const loading = document.getElementById("loading");
-    const gameContent = document.getElementById("gameContent");
-    const dateLabel = document.getElementById("dateLabel");
-    const targetElement = document.getElementById("target");
-    const numbersElement = document.getElementById("numbers");
-    const expressionDisplay = document.getElementById("expressionDisplay");
-    const messageElement = document.getElementById("message");
-    const solutionElement = document.getElementById("solution");
-    const solutionText = document.getElementById("solutionText");
-    const youtubeLink = document.getElementById("youtubeLink");
-    const timerElement = document.getElementById("timer");
+    function formatTime(totalSeconds){const m=Math.floor(totalSeconds/60),s=totalSeconds%60;return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;}
+    function getElapsedSeconds(){return timerStartedAt?Math.max(0,Math.floor((Date.now()-timerStartedAt)/1000)):0;}
+    function updateTimer(){timerElement.textContent=formatTime(getElapsedSeconds());}
+    function startTimer(startedAt){timerStartedAt=startedAt;timerStopped=false;timerElement.classList.remove("finished");updateTimer();clearInterval(timerInterval);timerInterval=setInterval(updateTimer,1000);}
+    function stopTimer(serverSeconds=null){if(timerStopped)return;timerStopped=true;clearInterval(timerInterval);timerInterval=null;if(Number.isInteger(serverSeconds))timerElement.textContent=formatTime(serverSeconds);else updateTimer();timerElement.classList.add("finished");}
+    async function requestJSON(url,options={}){const response=await fetch(url,{...options,headers:{"Content-Type":"application/json",...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Ha ocurrido un error.");return data;}
+    function showMessage(text,color){messageElement.textContent=text;messageElement.style.color=color;}
+    function setControlsDisabled(disabled){document.querySelectorAll("[data-token],#undoButton,#clearButton,#resetButton,#checkButton,#giveUpButton,.number-button").forEach(b=>b.disabled=disabled);}
+    function clearFeedback(){if(gameFinished)return;showMessage("","");solutionElement.style.display="none";}
+    function renderNumbers(){numbersElement.innerHTML="";puzzle.numbers.forEach((number,index)=>{const b=document.createElement("button");b.type="button";b.className="number-button";b.textContent=number;b.disabled=gameFinished||usedNumberIndexes.has(index);b.addEventListener("click",()=>addNumber(number,index));numbersElement.appendChild(b);});}
+    function renderExpression(){expressionDisplay.innerHTML=tokens.length? "":'<span class="placeholder">Pulsa los números y las operaciones</span>';if(tokens.length)expressionDisplay.textContent=tokens.map(t=>t.value==="*"?"×":t.value==="/"?"÷":t.value).join(" ");}
+    function addNumber(number,index){if(gameFinished||usedNumberIndexes.has(index))return;tokens.push({type:"number",value:String(number),numberIndex:index});usedNumberIndexes.add(index);clearFeedback();renderNumbers();renderExpression();}
+    function addSymbol(symbol){if(gameFinished)return;tokens.push({type:"symbol",value:symbol});clearFeedback();renderExpression();}
+    function undo(){if(gameFinished)return;const removed=tokens.pop();if(removed?.type==="number")usedNumberIndexes.delete(removed.numberIndex);clearFeedback();renderNumbers();renderExpression();}
+    function reset(){if(gameFinished)return;tokens=[];usedNumberIndexes.clear();clearFeedback();renderNumbers();renderExpression();}
+    function getExpression(){return tokens.map(t=>t.value).join("");}
+    async function loadPuzzle(){try{puzzle=await requestJSON("/.netlify/functions/daily-puzzle");targetElement.textContent=puzzle.target;dateLabel.textContent=new Intl.DateTimeFormat("es-ES",{day:"numeric",month:"long",year:"numeric",timeZone:"Europe/Madrid"}).format(new Date(`${puzzle.date}T12:00:00+02:00`));loading.hidden=true;usernameCard.hidden=false;$("usernameInput").value=localStorage.getItem("objetivoXUsername")||"";await loadLeaderboard();}catch(error){loading.className="error-state";loading.textContent=error.message;}}
+    async function startGame(){const input=$("usernameInput").value;try{$("usernameError").textContent="";const data=await requestJSON("/.netlify/functions/start-game",{method:"POST",body:JSON.stringify({username:input})});sessionId=data.sessionId;username=data.username;localStorage.setItem("objetivoXUsername",username);$("playerName").textContent=username;usernameCard.hidden=true;gameContent.hidden=false;gameFinished=false;tokens=[];usedNumberIndexes.clear();renderNumbers();renderExpression();setControlsDisabled(false);startTimer(data.startedAt);}catch(error){$("usernameError").textContent=error.message;$("usernameError").style.color="#f87171";}}
+    async function checkAnswer(){if(gameFinished)return;if(usedNumberIndexes.size!==puzzle.numbers.length){showMessage("Debes usar los seis números exactamente una vez.","#f87171");return;}try{const data=await requestJSON("/.netlify/functions/check-answer",{method:"POST",body:JSON.stringify({expression:getExpression(),sessionId})});if(data.correct){gameFinished=true;stopTimer(data.elapsedSeconds);setControlsDisabled(true);showMessage(`¡Correcto! Tiempo: ${formatTime(data.elapsedSeconds)}. Eres el número ${data.position} en superarlo.`, "#22c55e");await loadLeaderboard();}else showMessage(`Todavía no. El resultado final es ${data.result}.`,"#f87171");}catch(error){showMessage(error.message,"#f87171");}}
+    async function revealSolution(){if(gameFinished)return;try{const data=await requestJSON("/.netlify/functions/reveal-solution",{method:"POST",body:JSON.stringify({sessionId})});gameFinished=true;stopTimer();setControlsDisabled(true);solutionText.textContent=`${data.solution} = ${puzzle.target}`;youtubeLink.href=data.youtube;solutionElement.style.display="block";showMessage("Te has rendido. Apareces al final de la clasificación de hoy.","#facc15");await loadLeaderboard();}catch(error){showMessage(error.message,"#f87171");}}
+    async function loadLeaderboard(){try{const data=await requestJSON("/.netlify/functions/leaderboard");rankingList.innerHTML="";const entries=[...data.solved.map(e=>({...e,status:"solved"})),...data.surrendered.map(e=>({...e,status:"surrendered"}))];rankingEmpty.hidden=entries.length>0;entries.forEach(entry=>{const li=document.createElement("li");li.className="ranking-row"+(entry.username===username?" me":"");const rank=document.createElement("span");rank.className="rank";rank.textContent=entry.status==="solved"?`${entry.position}.`:"—";const name=document.createElement("span");name.textContent=entry.username;const time=document.createElement("span");time.className="rank-time";time.textContent=entry.status==="solved"?formatTime(entry.elapsedSeconds):"Se rindió";li.append(rank,name,time);rankingList.appendChild(li);});}catch(error){rankingEmpty.hidden=false;rankingEmpty.textContent="No se pudo cargar la clasificación.";}}
+    function changeName(){if(!gameFinished&&!confirm("Cambiar el nombre terminará esta partida sin registrar resultado. ¿Continuar?"))return;clearInterval(timerInterval);timerInterval=null;gameContent.hidden=true;usernameCard.hidden=false;$("usernameInput").focus();}
 
-
-    function formatTime(totalSeconds) {
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-
-      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    function getElapsedSeconds() {
-      const runningTime = timerStartedAt ? Date.now() - timerStartedAt : 0;
-      return Math.floor((elapsedMilliseconds + runningTime) / 1000);
-    }
-
-    function updateTimer() {
-      timerElement.textContent = formatTime(getElapsedSeconds());
-    }
-
-    function startTimer() {
-      if (timerInterval || timerStopped) {
-        return;
-      }
-
-      timerStartedAt = Date.now();
-      updateTimer();
-      timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function stopTimer() {
-      if (timerStopped) {
-        return;
-      }
-
-      if (timerStartedAt) {
-        elapsedMilliseconds += Date.now() - timerStartedAt;
-        timerStartedAt = null;
-      }
-
-      timerStopped = true;
-      clearInterval(timerInterval);
-      timerInterval = null;
-      updateTimer();
-      timerElement.classList.add("finished");
-    }
-
-    async function requestJSON(url, options = {}) {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...(options.headers || {})
-        }
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.error || "Ha ocurrido un error.");
-      }
-
-      return data;
-    }
-
-    async function loadPuzzle() {
-      try {
-        puzzle = await requestJSON("/.netlify/functions/daily-puzzle");
-
-        targetElement.textContent = puzzle.target;
-        dateLabel.textContent = new Intl.DateTimeFormat("es-ES", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-          timeZone: "Europe/Madrid"
-        }).format(new Date(`${puzzle.date}T12:00:00+02:00`));
-
-        loading.hidden = true;
-        gameContent.hidden = false;
-
-        renderNumbers();
-        renderExpression();
-        startTimer();
-      } catch (error) {
-        loading.className = "error-state";
-        loading.textContent = error.message;
-      }
-    }
-
-    function renderNumbers() {
-      numbersElement.innerHTML = "";
-
-      puzzle.numbers.forEach((number, index) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "number-button";
-        button.textContent = number;
-        button.disabled = usedNumberIndexes.has(index);
-
-        button.addEventListener("click", () => addNumber(number, index));
-        numbersElement.appendChild(button);
-      });
-    }
-
-    function renderExpression() {
-      if (tokens.length === 0) {
-        expressionDisplay.innerHTML =
-          '<span class="placeholder">Pulsa los números y las operaciones</span>';
-        return;
-      }
-
-      expressionDisplay.textContent = tokens
-        .map((token) => token.value === "*" ? "×" : token.value === "/" ? "÷" : token.value)
-        .join(" ");
-    }
-
-    function addNumber(number, index) {
-      if (usedNumberIndexes.has(index)) return;
-
-      tokens.push({ type: "number", value: String(number), numberIndex: index });
-      usedNumberIndexes.add(index);
-      clearFeedback();
-      renderNumbers();
-      renderExpression();
-    }
-
-    function addSymbol(symbol) {
-      tokens.push({ type: "symbol", value: symbol });
-      clearFeedback();
-      renderExpression();
-    }
-
-    function undo() {
-      const removed = tokens.pop();
-
-      if (removed?.type === "number") {
-        usedNumberIndexes.delete(removed.numberIndex);
-      }
-
-      clearFeedback();
-      renderNumbers();
-      renderExpression();
-    }
-
-    function reset() {
-      tokens = [];
-      usedNumberIndexes.clear();
-      clearFeedback();
-      renderNumbers();
-      renderExpression();
-    }
-
-    function clearFeedback() {
-      messageElement.textContent = "";
-      solutionElement.style.display = "none";
-    }
-
-    function showMessage(text, color) {
-      messageElement.textContent = text;
-      messageElement.style.color = color;
-    }
-
-    function getExpression() {
-      return tokens.map((token) => token.value).join("");
-    }
-
-    async function checkAnswer() {
-      if (usedNumberIndexes.size !== puzzle.numbers.length) {
-        showMessage("Debes usar los seis números exactamente una vez.", "#f87171");
-        return;
-      }
-
-      try {
-        const data = await requestJSON("/.netlify/functions/check-answer", {
-          method: "POST",
-          body: JSON.stringify({ expression: getExpression() })
-        });
-
-        if (data.correct) {
-          stopTimer();
-          showMessage(
-            `¡Correcto! Tiempo: ${formatTime(getElapsedSeconds())}.`,
-            "#22c55e"
-          );
-        } else {
-          showMessage(`Todavía no. El resultado final es ${data.result}.`, "#f87171");
-        }
-      } catch (error) {
-        showMessage(error.message, "#f87171");
-      }
-    }
-
-    async function revealSolution() {
-      try {
-        stopTimer();
-        const data = await requestJSON("/.netlify/functions/reveal-solution");
-
-        solutionText.textContent = `${data.solution} = ${puzzle.target}`;
-        youtubeLink.href = data.youtube;
-        solutionElement.style.display = "block";
-        showMessage("Aquí tienes una solución posible.", "#facc15");
-      } catch (error) {
-        showMessage(error.message, "#f87171");
-      }
-    }
-
-    document.querySelectorAll("[data-token]").forEach((button) => {
-      button.addEventListener("click", () => addSymbol(button.dataset.token));
-    });
-
-    document.getElementById("undoButton").addEventListener("click", undo);
-    document.getElementById("clearButton").addEventListener("click", reset);
-    document.getElementById("resetButton").addEventListener("click", reset);
-    document.getElementById("checkButton").addEventListener("click", checkAnswer);
-    document.getElementById("giveUpButton").addEventListener("click", revealSolution);
-
+    document.querySelectorAll("[data-token]").forEach(b=>b.addEventListener("click",()=>addSymbol(b.dataset.token)));
+    $("startButton").addEventListener("click",startGame);$("usernameInput").addEventListener("keydown",e=>{if(e.key==="Enter")startGame();});
+    $("undoButton").addEventListener("click",undo);$("clearButton").addEventListener("click",reset);$("resetButton").addEventListener("click",reset);
+    $("checkButton").addEventListener("click",checkAnswer);$("giveUpButton").addEventListener("click",revealSolution);
+    $("refreshLeaderboard").addEventListener("click",loadLeaderboard);$("changeNameButton").addEventListener("click",changeName);
     loadPuzzle();
   </script>
 </body>

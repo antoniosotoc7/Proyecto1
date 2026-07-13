@@ -1,76 +1,48 @@
-# Objetivo X protegido
-
-Esta versión guarda los retos futuros y las soluciones dentro de funciones
-del servidor. No aparecen en `public/index.html` ni se descargan al abrir la web.
+# Objetivo X con clasificación
 
 ## Estructura
 
-- `public/index.html`: interfaz pública.
-- `netlify/functions/daily-puzzle.js`: entrega solo el reto de hoy.
-- `netlify/functions/check-answer.js`: comprueba la respuesta en el servidor.
-- `netlify/functions/reveal-solution.js`: devuelve únicamente la solución de hoy.
-- `netlify/functions/_shared/puzzles.js`: aquí preparas los siete retos.
-- `netlify/functions/_shared/parser.js`: evaluador matemático seguro.
-- `netlify.toml`: configuración de Netlify.
+- `public/index.html`: interfaz del juego.
+- `netlify/functions/start-game.js`: inicia la partida y registra la hora en el servidor.
+- `netlify/functions/check-answer.js`: valida la operación y guarda el tiempo.
+- `netlify/functions/reveal-solution.js`: registra al jugador como rendido.
+- `netlify/functions/leaderboard.js`: devuelve la clasificación diaria.
+- `netlify/functions/_shared/storage.js`: acceso a Netlify Blobs.
+- `netlify/functions/_shared/puzzles.js`: retos diarios.
+- `netlify/functions/_shared/parser.js`: evaluador matemático.
+- `package.json`: dependencia `@netlify/blobs`.
 
-## Añadir los retos de cada semana
+## Publicar los cambios
 
-Abre:
-
-`netlify/functions/_shared/puzzles.js`
-
-y cambia la lista `puzzles`.
-
-No pongas los retos dentro de `public/index.html`.
-
-## Publicación recomendada
-
-Esta versión usa Netlify Functions. No basta con abrir `index.html` directamente
-ni con publicar solo la carpeta `public`.
-
-### Método sencillo con GitHub
-
-1. Crea un repositorio privado en GitHub.
-2. Sube el contenido completo de esta carpeta, manteniendo su estructura.
-3. En Netlify, selecciona **Add new project** y conecta el repositorio.
-4. Netlify leerá automáticamente `netlify.toml`.
-5. Publica el proyecto.
-6. Cada semana modifica `puzzles.js` y vuelve a subir los cambios a GitHub.
-
-### Prueba local
-
-Instala Node.js y después ejecuta:
+Sustituye los archivos de tu repositorio por estos y ejecuta:
 
 ```bash
-npm install -g netlify-cli
-netlify dev
+git add .
+git commit -m "Añade nombres de usuario y clasificación diaria"
+git push
 ```
 
-Abre la dirección local que muestre Netlify.
+Netlify instalará automáticamente las dependencias y desplegará las funciones.
 
-## Qué queda oculto
+## Prueba local
 
-Al inspeccionar la página, una persona podrá ver:
+```bash
+npm install
+npx netlify dev
+```
 
-- el HTML, CSS y JavaScript de la interfaz;
-- el reto correspondiente al día actual;
-- las peticiones realizadas al servidor.
+Netlify Dev utiliza un almacén local separado del de producción.
 
-No podrá obtener desde `index.html`:
+## Comportamiento
 
-- los retos de los próximos días;
-- las soluciones futuras;
-- el archivo privado `puzzles.js`;
-- la lógica interna de comprobación del servidor.
+- El usuario elige un nombre de 3 a 20 caracteres.
+- La hora de inicio se registra en el servidor.
+- Los tiempos correctos se ordenan de menor a mayor.
+- Los rendidos aparecen al final.
+- Cada partida solo puede registrar un resultado.
+- Los resultados se guardan en Netlify Blobs y sobreviven a nuevos despliegues.
 
-La solución del día sí puede obtenerse llamando al endpoint de revelado, porque
-el botón “Me rindo” necesita acceder a ella. Para evitar incluso eso haría falta
-añadir cuentas de usuario y guardar el estado de cada partida en una base de datos.
+## Limitaciones
 
-
-## Temporizador
-
-- Empieza automáticamente al cargar el reto.
-- No se reinicia al pulsar “Reiniciar” ni “Borrar todo”.
-- Se detiene al acertar.
-- Se detiene al pulsar “Me rindo”.
+Es una clasificación casual sin cuentas ni contraseña. Un usuario puede abrir otra partida o usar otro nombre.
+Para competiciones con premios conviene añadir autenticación y una base de datos con controles más estrictos.

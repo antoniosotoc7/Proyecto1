@@ -1,0 +1,9 @@
+{
+  "name": "objetivo-x",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Juego diario Objetivo X con clasificación por tiempo",
+  "dependencies": {
+    "@netlify/blobs": "^10.0.8"
+  }
+}
