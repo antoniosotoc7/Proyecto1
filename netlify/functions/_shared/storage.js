@@ -5,7 +5,13 @@ const STORE_NAME = "objetivo-x-ranking";
 async function getBlobStore(event) {
   const { connectLambda, getStore } = await import("@netlify/blobs");
   connectLambda(event);
-  return getStore(STORE_NAME);
+
+  // La clasificación necesita lecturas inmediatas después de guardar.
+  // Con "strong" evitamos que la posición tarde en aparecer.
+  return getStore({
+    name: STORE_NAME,
+    consistency: "strong"
+  });
 }
 
 function cleanUsername(value) {
