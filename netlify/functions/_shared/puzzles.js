@@ -14,49 +14,49 @@
 
 const puzzles = [
   {
-    date: "2026-06-22",
+    date: "2026-07-12",
     numbers: [2, 3, 4, 5, 6, 9],
     target: 100,
     solution: "(9+6+5)*(4+3-2)",
     youtube: "https://youtu.be/VIDEO_LUNES"
   },
   {
-    date: "2026-06-23",
+    date: "2026-07-13",
     numbers: [1, 2, 3, 4, 5, 10],
     target: 66,
     solution: "(10+5-4)*(3+2+1)",
     youtube: "https://youtu.be/VIDEO_MARTES"
   },
   {
-    date: "2026-06-24",
+    date: "2026-07-14",
     numbers: [2, 4, 5, 6, 7, 9],
     target: 90,
     solution: "(9+7+2)*(6+4-5)",
     youtube: "https://youtu.be/VIDEO_MIERCOLES"
   },
   {
-    date: "2026-06-25",
+    date: "2026-07-15",
     numbers: [1, 2, 3, 5, 8, 10],
     target: 60,
     solution: "(10+8+5-3)*(2+1)",
     youtube: "https://youtu.be/VIDEO_JUEVES"
   },
   {
-    date: "2026-06-26",
+    date: "2026-07-16",
     numbers: [2, 3, 4, 6, 8, 10],
     target: 90,
     solution: "(10+8)*(6+4-3-2)",
     youtube: "https://youtu.be/VIDEO_VIERNES"
   },
   {
-    date: "2026-06-27",
+    date: "2026-07-17",
     numbers: [1, 3, 5, 6, 8, 9],
     target: 112,
     solution: "(9+8+6+5)*(3+1)",
     youtube: "https://youtu.be/VIDEO_SABADO"
   },
   {
-    date: "2026-06-28",
+    date: "2026-07-18",
     numbers: [2, 4, 5, 7, 8, 9],
     target: 174,
     solution: "(9+8+7+5)*(4+2)",
