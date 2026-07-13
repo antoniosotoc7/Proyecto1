@@ -25,21 +25,21 @@ const puzzles = [
     numbers: [1, 2, 3, 4, 5, 10],
     target: 66,
     solution: "(10+5-4)*(3+2+1)",
-    youtube: "https://youtu.be/VIDEO_MARTES"
+    youtube: "https://youtube.com/shorts/25GNaOgBzcE"
   },
   {
     date: "2026-07-14",
     numbers: [2, 4, 5, 6, 7, 9],
     target: 90,
     solution: "(9+7+2)*(6+4-5)",
-    youtube: "https://youtu.be/VIDEO_MIERCOLES"
+    youtube: "hhttps://youtube.com/shorts/Yf15Ulu-lE0"
   },
   {
     date: "2026-07-15",
     numbers: [1, 2, 3, 5, 8, 10],
     target: 60,
     solution: "(10+8+5-3)*(2+1)",
-    youtube: "https://youtu.be/VIDEO_JUEVES"
+    youtube: "https://youtube.com/shorts/GUItNFrv84M"
   },
   {
     date: "2026-07-16",
