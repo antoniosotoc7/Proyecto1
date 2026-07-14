@@ -17,6 +17,43 @@ const headers = {
   "X-Content-Type-Options": "nosniff"
 };
 
+function normalizeExpression(expression) {
+  if (typeof expression !== "string") return "";
+
+  let normalized = expression
+    .replace(/\s+/g, "")
+    .replace(/×/g, "*")
+    .replace(/÷/g, "/");
+
+  // Quita paréntesis exteriores redundantes, solo cuando envuelven toda la expresión.
+  let changed = true;
+
+  while (changed && normalized.startsWith("(") && normalized.endsWith(")")) {
+    changed = false;
+    let depth = 0;
+    let wrapsEverything = true;
+
+    for (let index = 0; index < normalized.length; index += 1) {
+      const character = normalized[index];
+
+      if (character === "(") depth += 1;
+      if (character === ")") depth -= 1;
+
+      if (depth === 0 && index < normalized.length - 1) {
+        wrapsEverything = false;
+        break;
+      }
+    }
+
+    if (wrapsEverything) {
+      normalized = normalized.slice(1, -1);
+      changed = true;
+    }
+  }
+
+  return normalized;
+}
+
 exports.handler = async function handler(event) {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, headers, body: JSON.stringify({ error: "Método no permitido." }) };
@@ -90,6 +127,10 @@ exports.handler = async function handler(event) {
     const leaderboard = await getLeaderboard(event, puzzle.date);
     const position = findPosition(leaderboard, session.sessionId);
 
+    const officialSolution = normalizeExpression(puzzle.solution);
+    const playerSolution = normalizeExpression(expression);
+    const sameAsOfficial = playerSolution === officialSolution;
+
     return {
       statusCode: 200,
       headers,
@@ -98,7 +139,10 @@ exports.handler = async function handler(event) {
         result: puzzle.target,
         elapsedSeconds,
         position,
-        totalSolved: leaderboard.solved.length
+        totalSolved: leaderboard.solved.length,
+        sameAsOfficial,
+        officialSolution: puzzle.solution,
+        youtube: puzzle.youtube
       })
     };
   } catch (error) {

@@ -48,15 +48,18 @@ Es una clasificación casual sin cuentas ni contraseña. Un usuario puede abrir 
 Para competiciones con premios conviene añadir autenticación y una base de datos con controles más estrictos.
 
 
-## Un intento por usuario
+## Vídeo tras acertar
 
-Cada nombre de usuario solo puede iniciar una partida por fecha de reto.
-La reserva se realiza mediante una escritura condicional atómica (`onlyIfNew`),
-por lo que tampoco se permiten dos inicios simultáneos con el mismo nombre.
+Cuando el jugador acierta, el servidor devuelve la solución oficial y el enlace
+del vídeo:
 
-Los nombres se comparan sin distinguir mayúsculas y minúsculas. Por ejemplo,
-`Antonio` y `antonio` cuentan como el mismo usuario.
+- Si la expresión escrita coincide con la solución oficial tras normalizar
+  espacios, símbolos `×`/`÷` y paréntesis exteriores redundantes, se ofrece la
+  explicación de esa misma solución.
+- Si la expresión es diferente pero también alcanza el objetivo, se indica que
+  el jugador ha encontrado una solución alternativa y se muestra la solución
+  oficial explicada en el vídeo.
 
-Esta restricción no equivale a una cuenta autenticada: una persona todavía puede
-usar un nombre diferente. Para impedirlo de forma fiable hacen falta cuentas con
-inicio de sesión.
+La comparación es textual normalizada, no una demostración completa de
+equivalencia algebraica. Por ejemplo, dos expresiones con sumandos cambiados de
+orden pueden considerarse alternativas aunque matemáticamente sean equivalentes.

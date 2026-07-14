@@ -86,9 +86,9 @@
     <div id="loading" class="loading">Cargando el reto de hoy…</div>
 
     <section id="usernameCard" class="username-card" hidden>
-      <div class="section-label">Nombre de jugador · un intento diario</div>
+      <div class="section-label">Nombre de jugador</div>
       <div class="username-row">
-        <input id="usernameInput" class="username-input" maxlength="20" autocomplete="nickname" placeholder="Escribe tu nombre único" />
+        <input id="usernameInput" class="username-input" maxlength="20" autocomplete="nickname" placeholder="Escribe tu nombre" />
         <button id="startButton" class="primary-button">Empezar reto</button>
       </div>
       <div id="usernameError" class="message"></div>
@@ -109,7 +109,7 @@
       <section class="actions"><button class="action-button reset-button" id="resetButton">Reiniciar</button><button class="action-button check-button" id="checkButton">Comprobar</button></section>
       <button class="solution-button" id="giveUpButton">Me rindo y quiero ver la solución</button>
       <div class="message" id="message"></div>
-      <section class="solution" id="solution"><div>Una solución posible es:</div><strong class="solution-expression" id="solutionText"></strong><a class="youtube-link" id="youtubeLink" target="_blank" rel="noopener noreferrer">Ver explicación en YouTube</a></section>
+      <section class="solution" id="solution"><div id="solutionHeading">Una solución posible es:</div><strong class="solution-expression" id="solutionText"></strong><a class="youtube-link" id="youtubeLink" target="_blank" rel="noopener noreferrer">Ver explicación en YouTube</a></section>
       <section class="leaderboard">
         <div class="leaderboard-head"><h2>Clasificación de hoy</h2><button id="refreshLeaderboard" class="link-button">Actualizar</button></div>
         <ol id="rankingList" class="ranking-list"></ol>
@@ -122,7 +122,7 @@
   <script>
     let puzzle=null,tokens=[],usedNumberIndexes=new Set(),timerInterval=null,timerStartedAt=null,timerStopped=false,sessionId=null,username="",gameFinished=false;
     const $=(id)=>document.getElementById(id);
-    const loading=$("loading"),usernameCard=$("usernameCard"),gameContent=$("gameContent"),dateLabel=$("dateLabel"),targetElement=$("target"),numbersElement=$("numbers"),expressionDisplay=$("expressionDisplay"),messageElement=$("message"),solutionElement=$("solution"),solutionText=$("solutionText"),youtubeLink=$("youtubeLink"),timerElement=$("timer"),rankingList=$("rankingList"),rankingEmpty=$("rankingEmpty");
+    const loading=$("loading"),usernameCard=$("usernameCard"),gameContent=$("gameContent"),dateLabel=$("dateLabel"),targetElement=$("target"),numbersElement=$("numbers"),expressionDisplay=$("expressionDisplay"),messageElement=$("message"),solutionElement=$("solution"),solutionText=$("solutionText"),solutionHeading=$("solutionHeading"),youtubeLink=$("youtubeLink"),timerElement=$("timer"),rankingList=$("rankingList"),rankingEmpty=$("rankingEmpty");
 
     function formatTime(totalSeconds){const m=Math.floor(totalSeconds/60),s=totalSeconds%60;return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;}
     function getElapsedSeconds(){return timerStartedAt?Math.max(0,Math.floor((Date.now()-timerStartedAt)/1000)):0;}
@@ -141,9 +141,86 @@
     function reset(){if(gameFinished)return;tokens=[];usedNumberIndexes.clear();clearFeedback();renderNumbers();renderExpression();}
     function getExpression(){return tokens.map(t=>t.value).join("");}
     async function loadPuzzle(){try{puzzle=await requestJSON("/.netlify/functions/daily-puzzle");targetElement.textContent=puzzle.target;dateLabel.textContent=new Intl.DateTimeFormat("es-ES",{day:"numeric",month:"long",year:"numeric",timeZone:"Europe/Madrid"}).format(new Date(`${puzzle.date}T12:00:00+02:00`));loading.hidden=true;usernameCard.hidden=false;$("usernameInput").value=localStorage.getItem("objetivoXUsername")||"";await loadLeaderboard();}catch(error){loading.className="error-state";loading.textContent=error.message;}}
-    async function startGame(){const input=$("usernameInput").value;try{$("usernameError").textContent="";const data=await requestJSON("/.netlify/functions/start-game",{method:"POST",body:JSON.stringify({username:input})});sessionId=data.sessionId;username=data.username;localStorage.setItem("objetivoXUsername",username);$("playerName").textContent=username;usernameCard.hidden=true;gameContent.hidden=false;gameFinished=false;tokens=[];usedNumberIndexes.clear();renderNumbers();renderExpression();setControlsDisabled(false);startTimer(data.startedAt);}catch(error){$("usernameError").textContent=error.message;$("usernameError").style.color="#f87171";}}
-    async function checkAnswer(){if(gameFinished)return;if(usedNumberIndexes.size!==puzzle.numbers.length){showMessage("Debes usar los seis números exactamente una vez.","#f87171");return;}try{const data=await requestJSON("/.netlify/functions/check-answer",{method:"POST",body:JSON.stringify({expression:getExpression(),sessionId})});if(data.correct){gameFinished=true;stopTimer(data.elapsedSeconds);setControlsDisabled(true);showMessage(`¡Correcto! Tiempo: ${formatTime(data.elapsedSeconds)}. Eres el número ${data.position} en superarlo.`, "#22c55e");await loadLeaderboard();}else showMessage(`Todavía no. El resultado final es ${data.result}.`,"#f87171");}catch(error){showMessage(error.message,"#f87171");}}
-    async function revealSolution(){if(gameFinished)return;try{const data=await requestJSON("/.netlify/functions/reveal-solution",{method:"POST",body:JSON.stringify({sessionId})});gameFinished=true;stopTimer();setControlsDisabled(true);solutionText.textContent=`${data.solution} = ${puzzle.target}`;youtubeLink.href=data.youtube;solutionElement.style.display="block";showMessage("Te has rendido. Apareces al final de la clasificación de hoy.","#facc15");await loadLeaderboard();}catch(error){showMessage(error.message,"#f87171");}}
+    async function startGame(){
+      const input=$("usernameInput").value;
+      const localAttemptKey = puzzle ? `objetivoXAttempt:${puzzle.date}:${input.trim().normalize("NFKC").toLocaleLowerCase("es-ES")}` : "";
+      if (localAttemptKey && localStorage.getItem(localAttemptKey)) {
+        $("usernameError").textContent="Ese nombre ya ha iniciado el reto de hoy en este dispositivo.";
+        $("usernameError").style.color="#f87171";
+        return;
+      }
+      try{$("usernameError").textContent="";const data=await requestJSON("/.netlify/functions/start-game",{method:"POST",body:JSON.stringify({username:input})});sessionId=data.sessionId;username=data.username;
+      localStorage.setItem("objetivoXUsername",username);
+      localStorage.setItem(`objetivoXAttempt:${puzzle.date}:${username.normalize("NFKC").toLocaleLowerCase("es-ES")}`, data.sessionId);$("playerName").textContent=username;usernameCard.hidden=true;gameContent.hidden=false;gameFinished=false;tokens=[];usedNumberIndexes.clear();renderNumbers();renderExpression();setControlsDisabled(false);startTimer(data.startedAt);}catch(error){$("usernameError").textContent=error.message;$("usernameError").style.color="#f87171";}}
+    async function checkAnswer(){
+      if(gameFinished)return;
+      if(usedNumberIndexes.size!==puzzle.numbers.length){
+        showMessage("Debes usar los seis números exactamente una vez.","#f87171");
+        return;
+      }
+
+      try{
+        const data=await requestJSON("/.netlify/functions/check-answer",{
+          method:"POST",
+          body:JSON.stringify({expression:getExpression(),sessionId})
+        });
+
+        if(data.correct){
+          gameFinished=true;
+          stopTimer(data.elapsedSeconds);
+          setControlsDisabled(true);
+
+          const positionText = data.position
+            ? `Eres el número ${data.position} en superarlo.`
+            : "Tu resultado se ha guardado correctamente.";
+
+          showMessage(
+            `¡Correcto! Tiempo: ${formatTime(data.elapsedSeconds)}. ${positionText}`,
+            "#22c55e"
+          );
+
+          youtubeLink.href=data.youtube;
+          solutionElement.style.display="block";
+
+          if(data.sameAsOfficial){
+            solutionHeading.textContent="Tu solución coincide con la solución oficial. ¿Quieres ver la explicación?";
+            solutionText.textContent=`${data.officialSolution} = ${puzzle.target}`;
+            youtubeLink.textContent="Ver explicación en YouTube";
+          }else{
+            solutionHeading.textContent="Has encontrado una solución alternativa. Esta es la solución explicada en el vídeo:";
+            solutionText.textContent=`${data.officialSolution} = ${puzzle.target}`;
+            youtubeLink.textContent="Ver solución alternativa en YouTube";
+          }
+
+          await loadLeaderboard();
+        }else{
+          showMessage(`Todavía no. El resultado final es ${data.result}.`,"#f87171");
+        }
+      }catch(error){
+        showMessage(error.message,"#f87171");
+      }
+    }
+    async function revealSolution(){
+      if(gameFinished)return;
+      try{
+        const data=await requestJSON("/.netlify/functions/reveal-solution",{
+          method:"POST",
+          body:JSON.stringify({sessionId})
+        });
+        gameFinished=true;
+        stopTimer();
+        setControlsDisabled(true);
+        solutionHeading.textContent="Una solución posible es:";
+        solutionText.textContent=`${data.solution} = ${puzzle.target}`;
+        youtubeLink.href=data.youtube;
+        youtubeLink.textContent="Ver explicación en YouTube";
+        solutionElement.style.display="block";
+        showMessage("Te has rendido. Apareces al final de la clasificación de hoy.","#facc15");
+        await loadLeaderboard();
+      }catch(error){
+        showMessage(error.message,"#f87171");
+      }
+    }
     async function loadLeaderboard(){try{const data=await requestJSON("/.netlify/functions/leaderboard");rankingList.innerHTML="";const entries=[...data.solved.map(e=>({...e,status:"solved"})),...data.surrendered.map(e=>({...e,status:"surrendered"}))];rankingEmpty.hidden=entries.length>0;entries.forEach(entry=>{const li=document.createElement("li");li.className="ranking-row"+(entry.username===username?" me":"");const rank=document.createElement("span");rank.className="rank";rank.textContent=entry.status==="solved"?`${entry.position}.`:"—";const name=document.createElement("span");name.textContent=entry.username;const time=document.createElement("span");time.className="rank-time";time.textContent=entry.status==="solved"?formatTime(entry.elapsedSeconds):"Se rindió";li.append(rank,name,time);rankingList.appendChild(li);});}catch(error){rankingEmpty.hidden=false;rankingEmpty.textContent="No se pudo cargar la clasificación.";}}
     function changeName(){if(!gameFinished&&!confirm("Cambiar el nombre terminará esta partida sin registrar resultado. ¿Continuar?"))return;clearInterval(timerInterval);timerInterval=null;gameContent.hidden=true;usernameCard.hidden=false;$("usernameInput").focus();}
 

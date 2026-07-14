@@ -26,6 +26,12 @@ function cleanUsername(value) {
   return username;
 }
 
+function normalizeUsername(username) {
+  return username
+    .normalize("NFKC")
+    .toLocaleLowerCase("es-ES");
+}
+
 function sessionKey(id) {
   return `sessions/${id}`;
 }
@@ -35,38 +41,35 @@ function resultKey(date, id) {
 }
 
 function usernameClaimKey(date, username) {
-  const normalizedUsername = username
-    .normalize("NFKC")
-    .toLocaleLowerCase("es-ES");
-
-  const usernameHash = crypto
+  const hash = crypto
     .createHash("sha256")
-    .update(normalizedUsername)
+    .update(normalizeUsername(username))
     .digest("hex");
 
-  return `username-claims/${date}/${usernameHash}`;
+  return `username-claims/${date}/${hash}`;
 }
 
 async function createSession(event, date, username) {
   const store = await getBlobStore(event);
   const cleanedUsername = cleanUsername(username);
   const sessionId = crypto.randomUUID();
+  const claimedAt = Date.now();
 
-  // Reserva atómicamente el nombre para este reto.
-  // onlyIfNew impide que el mismo nombre pueda iniciar otra partida hoy.
-  const claim = await store.setJSON(
+  // Patrón oficial de Netlify Blobs para una escritura atómica.
+  // Si la clave ya existe, modified será false.
+  const claim = await store.set(
     usernameClaimKey(date, cleanedUsername),
-    {
+    JSON.stringify({
       username: cleanedUsername,
       sessionId,
-      claimedAt: Date.now()
-    },
+      claimedAt
+    }),
     { onlyIfNew: true }
   );
 
-  if (!claim.modified) {
+  if (!claim || claim.modified !== true) {
     throw new Error(
-      "Ese nombre ya ha participado en el reto de hoy. Cada usuario dispone de un solo intento."
+      "Ese nombre ya ha participado en el reto de hoy. Cada nombre solo puede jugar una vez."
     );
   }
 
@@ -78,16 +81,7 @@ async function createSession(event, date, username) {
     status: "playing"
   };
 
-  const created = await store.setJSON(
-    sessionKey(sessionId),
-    session,
-    { onlyIfNew: true }
-  );
-
-  if (!created.modified) {
-    throw new Error("No se pudo crear la partida. Prueba con otro nombre.");
-  }
-
+  await store.setJSON(sessionKey(sessionId), session, { onlyIfNew: true });
   return session;
 }
 
@@ -171,11 +165,7 @@ function findPosition(leaderboard, sessionId) {
     (entry) => entry.sessionId === sessionId
   );
 
-  if (solved) {
-    return solved.position;
-  }
-
-  return null;
+  return solved ? solved.position : null;
 }
 
 module.exports = {
